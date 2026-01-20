@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# Proton Notes
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, local-first note-taking application built with React, Vite, and Electron. Featuring a sleek "Proton" aesthetic with dark visuals and smooth performance.
 
-Currently, two official plugins are available:
+![Proton Notes Screenshot](https://placehold.co/600x400/0f172a/ffffff?text=Proton+Notes+Preview)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Dual-Mode Architecture**:
+  - 🌐 **Web App**: Accessible as a standard SPA (Single Page Application).
+  - 🖥️ **Desktop App**: High-performance Electron application for Windows.
+- **Local-First Storage**: Notes are persisted instantly to local storage.
+- **Modern UI**: Built with Tailwind CSS v4, utilizing a "slate" dark mode palette and linear gradients.
+- **Responsive Design**: Fluid sidebar and editor layout.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- **Core**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Desktop**: [Electron](https://www.electronjs.org/), [Electron Builder](https://www.electron.build/)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18 or higher)
+- npm or pnpm
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/nbfrodri/proton-notes.git
+cd proton-notes
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Run Web Version:**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+**Run Desktop Version:**
+
+```bash
+npm run electron:dev
+```
+
+## Building
+
+### Web Build
+
+Compiles the SPA for deployment (e.g., GitHub Pages, Vercel).
+
+```bash
+npm run build
+```
+
+Output: `dist/`
+
+### Desktop Build (Executable)
+
+Compiles the Electron app and generates an installer `.exe`.
+
+```bash
+npm run dist
+```
+
+Output: `release/`
+
+- Installer: `Proton Notes Setup 0.0.0.exe`
+- Portable: `release/win-unpacked/Proton Notes.exe`
+
+## Deployment
+
+### GitHub Pages
+
+This project is configured to deploy to GitHub Pages.
+
+```bash
+npm run deploy
+```
+
+## Contributing
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
