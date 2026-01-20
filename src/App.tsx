@@ -1,6 +1,8 @@
 import { Layout } from "./components/Layout";
 import { Sidebar } from "./components/Sidebar";
-import { Editor } from "./components/Editor";
+import { RichEditor } from "./components/RichEditor";
+import { ChecklistEditor } from "./components/ChecklistEditor";
+import { ImageCollection } from "./components/ImageCollection";
 import { useNotes } from "./store/useNotes";
 
 function App() {
@@ -33,7 +35,15 @@ function App() {
           onDeleteNote={handleDelete}
         />
       }
-      content={<Editor note={activeNote} onUpdate={updateNote} />}
+      content={
+        activeNote?.type === "checklist" ? (
+          <ChecklistEditor note={activeNote} onUpdate={updateNote} />
+        ) : activeNote?.type === "image" ? (
+          <ImageCollection note={activeNote} onUpdate={updateNote} />
+        ) : (
+          <RichEditor note={activeNote} onUpdate={updateNote} />
+        )
+      }
     />
   );
 }

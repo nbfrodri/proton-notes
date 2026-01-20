@@ -1,6 +1,6 @@
-import { contextBridge } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  // Add API functions here
   platform: process.platform,
+  saveImage: (buffer: ArrayBuffer) => ipcRenderer.invoke("save-image", buffer),
 });

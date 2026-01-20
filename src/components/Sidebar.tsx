@@ -1,11 +1,12 @@
 import React from "react";
 import { type Note } from "../types";
+import { FileText, CheckSquare, Image as ImageIcon } from "lucide-react";
 
 interface SidebarProps {
   notes: Note[];
   activeNoteId: string | null;
   onNoteSelect: (id: string) => void;
-  onAddNote: () => void;
+  onAddNote: (type: "text" | "checklist" | "image") => void;
   onDeleteNote: (id: string, e: React.MouseEvent) => void;
 }
 
@@ -16,6 +17,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onAddNote,
   onDeleteNote,
 }) => {
+  const getTypeIcon = (type: Note["type"]) => {
+    switch (type) {
+      case "checklist":
+        return <CheckSquare size={14} className="text-emerald-400" />;
+      case "image":
+        return <ImageIcon size={14} className="text-blue-400" />;
+      default:
+        return <FileText size={14} className="text-indigo-400" />;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-300">
       <div className="p-4 pt-10 border-b border-white/5">
@@ -38,10 +50,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         }
                     `}
           >
-            <div className="font-medium truncate pr-6">
-              {note.title || "Untitled Note"}
+            <div className="font-medium truncate pr-6 flex items-center gap-2">
+              {getTypeIcon(note.type)}
+              <span className="truncate">{note.title || "Untitled Note"}</span>
             </div>
-            <div className="text-xs text-white/40 mt-1 truncate">
+            <div className="text-xs text-white/40 mt-1 truncate pl-6">
               {new Date(note.updatedAt).toLocaleDateString()}
             </div>
 
@@ -62,12 +75,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/5 grid grid-cols-3 gap-1">
         <button
-          onClick={onAddNote}
-          className="w-full py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors shadow-lg shadow-indigo-500/20"
+          onClick={() => onAddNote("text")}
+          className="py-2 px-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-indigo-500/20"
+          title="New Text Note"
         >
-          + New Note
+          <FileText size={16} />
+          <span>Text</span>
+        </button>
+        <button
+          onClick={() => onAddNote("checklist")}
+          className="py-2 px-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-emerald-500/20"
+          title="New Checklist"
+        >
+          <CheckSquare size={16} />
+          <span>Task</span>
+        </button>
+        <button
+          onClick={() => onAddNote("image")}
+          className="py-2 px-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-blue-500/20"
+          title="New Image Collection"
+        >
+          <ImageIcon size={16} />
+          <span>Image</span>
         </button>
       </div>
     </div>

@@ -1,94 +1,51 @@
 # Proton Notes
 
-A premium, local-first note-taking application built with React, Vite, and Electron. Featuring a sleek "Proton" aesthetic with dark visuals and smooth performance.
+A modern, desktop-based note-taking application built with **Electron**, **React**, **TypeScript**, and **Vite**.
 
-![Proton Notes Screenshot](https://placehold.co/600x400/0f172a/ffffff?text=Proton+Notes+Preview)
-
-## Features
-
-- **Dual-Mode Architecture**:
-  - 🌐 **Web App**: Accessible as a standard SPA (Single Page Application).
-  - 🖥️ **Desktop App**: High-performance Electron application for Windows.
-- **Local-First Storage**: Notes are persisted instantly to local storage.
-- **Modern UI**: Built with Tailwind CSS v4, utilizing a "slate" dark mode palette and linear gradients.
-- **Responsive Design**: Fluid sidebar and editor layout.
+> **Note**: This project was built by an **Agentic AI** (Google DeepMind) with a human-in-the-loop workflow.
 
 ## Tech Stack
 
-- **Core**: [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Desktop**: [Electron](https://www.electronjs.org/), [Electron Builder](https://www.electron.build/)
+- **Framework**: Electron (v40)
+- **Frontend**: React (v19) + Vite
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS (v4)
+- **Editor**: TipTap (Rich Text, Task Lists, Image Support)
+- **Storage**: Local File System (JSON for notes, local images)
 
-## Getting Started
+## Features
+
+- 📝 **Rich Text Editing**: Bold, Italic, Headings, Lists, Quotes, Code Blocks.
+- ✅ **Task Lists**: Manage to-do lists within your notes.
+- 🖼️ **Image Support**: Paste images directly from your clipboard (screenshots, files).
+- 🌓 **Dark Mode**: Sleek, slate-based dark theme.
+- ⚡ **Fast & Local**: Runs locally on your machine, your data stays properly yours.
+
+## Development
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or pnpm
+- Node.js (v20+)
+- npm
 
-### Installation
-
-Clone the repository and install dependencies:
+### Setup
 
 ```bash
-git clone https://github.com/nbfrodri/proton-notes.git
-cd proton-notes
 npm install
 ```
 
-### Development
+### Run Locally
 
-**Run Web Version:**
-
-```bash
-npm run dev
-```
-
-**Run Desktop Version:**
+To run the app with full Electron capabilities (filesystem access):
 
 ```bash
 npm run electron:dev
 ```
 
-## Building
+### Build
 
-### Web Build
-
-Compiles the SPA for deployment (e.g., GitHub Pages, Vercel).
-
-```bash
-npm run build
-```
-
-Output: `dist/`
-
-### Desktop Build (Executable)
-
-Compiles the Electron app and generates an installer `.exe`.
+To create a production build/installer:
 
 ```bash
 npm run dist
 ```
-
-Output: `release/`
-
-- Installer: `Proton Notes Setup 0.0.0.exe`
-- Portable: `release/win-unpacked/Proton Notes.exe`
-
-## Deployment
-
-### GitHub Pages
-
-This project is configured to deploy to GitHub Pages.
-
-```bash
-npm run deploy
-```
-
-## Contributing
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request

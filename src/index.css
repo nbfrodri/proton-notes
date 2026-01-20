@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-slate-950: #020617;
@@ -30,4 +31,52 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* TipTap Specific Styles */
+ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+}
+
+ul[data-type="taskList"] li {
+  margin-bottom: 0;
+}
+
+/* Add indentation for nested lists */
+ul[data-type="taskList"] ul[data-type="taskList"] {
+  padding-left: 1.5rem;
+}
+
+li[data-type="taskItem"] {
+  display: flex;
+  gap: 0.5rem; /* Reduced gap */
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+li[data-type="taskItem"] label {
+  margin-top: 0.35rem; /* Optical alignment */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+li[data-type="taskItem"] input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #3b82f6;
+  margin: 0;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+li[data-type="taskItem"] div {
+  flex: 1;
+  min-width: 0;
+}
+
+li[data-type="taskItem"] p {
+  margin: 0 !important;
+  line-height: 1.6;
 }
