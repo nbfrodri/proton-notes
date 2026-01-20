@@ -1,17 +1,15 @@
 import { app, BrowserWindow, ipcMain, protocol, net } from "electron";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
-import { createRequire } from "node:module";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const cjsRequire = createRequire(import.meta.url);
+// CommonJS/TS hybrid handling: in a compiled CJS file, __dirname is available.
+// We don't need import.meta.url stuff.
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (cjsRequire("electron-squirrel-startup")) {
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
@@ -29,6 +27,11 @@ function createWindow() {
       color: "#0f172a",
       symbolColor: "#ffffff",
     },
+    // Icon path: in dev node_modules/electron/... so we need to step out to root then public
+    // But __dirname is dist-electron.
+    // Ideally use path.join(__dirname, '../public/icon.png') if copied there?
+    // Or just path.join(process.cwd(), 'public/icon.png') which works for dev mostly.
+    icon: path.join(__dirname, "../public/icon.png"),
     backgroundColor: "#0f172a", // Prevent white flash
   });
 
@@ -77,21 +80,29 @@ protocol.registerSchemesAsPrivileged([
 
 app.whenReady().then(() => {
   // Register 'media' protocol to serve files from userData/images
+  // Register 'media' protocol to serve files from userData/images
   protocol.handle("media", (request) => {
-    // request.url is like "media://filename.png" or "media://host/filename.png"
-    // We expect simple filenames, so we can strip everything up to the last slash or just replacing the start
-    let url = request.url.replace("media://", "");
+    try {
+      // request.url is "media://<filename>/" or "media://<filename>"
+      // Regex to capture the content between media:// and the next slash (or end of string)
+      // This ignores any trailing slashes automatically.
+      const match = request.url.match(/^media:\/\/([^/]+)/);
 
-    // In case of any leading slashes or host (e.g. media:///file.png -> /file.png)
-    if (url.startsWith("/")) {
-      url = url.substring(1);
+      if (!match || !match[1]) {
+        throw new Error("Invalid media URL format");
+      }
+
+      const fileName = decodeURIComponent(match[1]);
+      const userDataPath = app.getPath("userData");
+      const filePath = path.join(userDataPath, "images", fileName);
+      const fileUrl = pathToFileURL(filePath).toString();
+
+      console.log("Serving media:", request.url, "->", filePath);
+      return net.fetch(fileUrl);
+    } catch (e: any) {
+      console.error("Failed to handle media protocol:", e);
+      return new Response("Bad Request: " + e.message, { status: 400 });
     }
-
-    const userDataPath = app.getPath("userData");
-    const filePath = path.join(userDataPath, "images", url);
-    const fileUrl = pathToFileURL(filePath).toString();
-    console.log("Serving media:", request.url, "->", filePath);
-    return net.fetch(fileUrl);
   });
 
   createWindow();

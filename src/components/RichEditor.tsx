@@ -72,7 +72,8 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
     if (editor && note) {
       editor.commands.setContent(note.content);
     }
-  }, [note?.id, editor, note?.content]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note?.id, editor]);
 
   if (!note) {
     return (

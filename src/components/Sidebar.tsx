@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex flex-col h-full bg-slate-950 text-slate-300">
       <div className="p-4 pt-10 border-b border-white/5">
         <h1 className="text-xl font-bold bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Proton Notes
+          NBF Notes
         </h1>
       </div>
 

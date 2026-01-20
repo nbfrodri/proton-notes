@@ -1,4 +1,4 @@
-# Proton Notes
+# NBF Notes
 
 A modern, desktop-based note-taking application built with **Electron**, **React**, **TypeScript**, and **Vite**.
 
@@ -17,9 +17,10 @@ A modern, desktop-based note-taking application built with **Electron**, **React
 
 - 📝 **Rich Text Editing**: Bold, Italic, Headings, Lists, Quotes, Code Blocks.
 - ✅ **Task Lists**: Manage to-do lists within your notes.
-- 🖼️ **Image Support**: Paste images directly from your clipboard (screenshots, files).
+- 🖼️ **Image Support**: Upload and organize image collections with custom names.
 - 🌓 **Dark Mode**: Sleek, slate-based dark theme.
 - ⚡ **Fast & Local**: Runs locally on your machine, your data stays properly yours.
+- 🎨 **Modern Design**: Minimalist aesthetic with "NBF Notes" branding.
 
 ## Development
 

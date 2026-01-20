@@ -1,5 +1,5 @@
 {
-  "name": "notes",
+  "name": "nbf-notes",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,17 +12,17 @@
     "deploy": "gh-pages -d dist",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron:compile": "tsc -p electron",
+    "electron:compile": "tsc -p electron && echo {\"type\": \"commonjs\"} > dist-electron/package.json",
     "electron:start": "npm run electron:compile && electron .",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on tcp:5173 && npm run electron:start\"",
     "electron:build": "npm run build && npm run electron:compile",
     "dist": "npm run electron:build && electron-builder"
   },
-  "description": "Proton Notes App",
+  "description": "NBF Notes App",
   "author": "User",
   "build": {
-    "appId": "com.proton.notes",
-    "productName": "Proton Notes",
+    "appId": "com.nbf.notes",
+    "productName": "NBF Notes",
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
@@ -30,12 +30,17 @@
     "directories": {
       "output": "release"
     },
+    "icon": "public/icon.png",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/icon.png"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/icon.png",
+      "uninstallerIcon": "public/icon.png",
+      "installerHeaderIcon": "public/icon.png"
     }
   },
   "dependencies": {

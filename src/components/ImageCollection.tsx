@@ -11,7 +11,14 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
   note,
   onUpdate,
 }) => {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<
+    { id: string; url: string; name: string }[]
+  >([]);
+  const [selectedImage, setSelectedImage] = useState<{
+    id: string;
+    url: string;
+    name: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Parse images from content on load
@@ -20,8 +27,15 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
       try {
         const parsed = JSON.parse(note.content);
         if (Array.isArray(parsed)) {
-          console.log("ImageCollection: Loaded images", parsed);
-          setImages(parsed);
+          // Migration: Convert string[] to object[] if needed
+          const normalized = parsed.map((item) => {
+            if (typeof item === "string") {
+              return { id: item, url: item, name: "Untitled Image" }; // Backward compatibility
+            }
+            return item;
+          });
+          console.log("ImageCollection: Loaded images", normalized);
+          setImages(normalized);
         } else {
           setImages([]);
         }
@@ -30,12 +44,15 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
         setImages([]);
       }
     } else {
-      setImages([]);
+      // Only set empty if note is defined, but content is empty
+      if (note) setImages([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note?.id]);
 
-  const saveImages = (newImages: string[]) => {
+  const saveImages = (
+    newImages: { id: string; url: string; name: string }[],
+  ) => {
     console.log("ImageCollection: Saving images", newImages);
     setImages(newImages);
     if (note) {
@@ -51,22 +68,28 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     const files = e.target.files;
     console.log("ImageCollection: File input change", files);
     if (files && files.length > 0) {
-      const newPaths: string[] = [];
+      const newImages: { id: string; url: string; name: string }[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         console.log(`ImageCollection: Processing file ${file.name}`);
         try {
           const buffer = await file.arrayBuffer();
-          console.log(`ImageCollection: Buffer created for ${file.name}`);
           const imagePath = await window.electronAPI.saveImage(buffer);
-          console.log(`ImageCollection: Image saved at ${imagePath}`);
-          newPaths.push(imagePath);
+
+          // Use filename as default name (remove extension)
+          const name = file.name.replace(/\.[^/.]+$/, "");
+
+          newImages.push({
+            id: crypto.randomUUID(),
+            url: imagePath,
+            name: name,
+          });
         } catch (error) {
           console.error("ImageCollection: Failed to save image", error);
         }
       }
-      if (newPaths.length > 0) {
-        saveImages([...images, ...newPaths]);
+      if (newImages.length > 0) {
+        saveImages([...images, ...newImages]);
       }
     }
     // Reset input
@@ -75,96 +98,141 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     }
   };
 
-  const removeImage = (indexToRemove: number) => {
-    saveImages(images.filter((_, index) => index !== indexToRemove));
+  const removeImage = (idToRemove: string) => {
+    saveImages(images.filter((img) => img.id !== idToRemove));
+    if (selectedImage?.id === idToRemove) {
+      setSelectedImage(null);
+    }
+  };
+
+  const handleRename = (id: string, newName: string) => {
+    const updated = images.map((img) =>
+      img.id === id ? { ...img, name: newName } : img,
+    );
+    saveImages(updated);
   };
 
   if (!note) return null;
 
   return (
-    <div className="flex flex-col h-full w-full max-w-6xl mx-auto p-8 pt-12">
-      <input
-        type="text"
-        value={note.title}
-        onChange={(e) => onUpdate(note.id, { title: e.target.value })}
-        placeholder="Collection Title"
-        className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full"
-      />
+    <>
+      <div className="flex flex-col h-full w-full max-w-6xl mx-auto p-8 pt-12">
+        <input
+          type="text"
+          value={note.title}
+          onChange={(e) => onUpdate(note.id, { title: e.target.value })}
+          placeholder="Collection Title"
+          className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full"
+        />
 
-      {images.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl p-12 text-slate-500">
-          <Upload size={48} className="mb-4 opacity-50" />
-          <p className="text-xl font-medium mb-2">No images yet</p>
-          <p className="mb-6">Upload images to start your collection</p>
-          <button
-            onClick={handleUploadClick}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            <Plus size={20} />
-            <span>Add Images</span>
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max pb-20">
-          {images.map((src, index) => (
-            <div
-              key={`${src}-${index}`}
-              className="group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500"
+        {images.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl p-12 text-slate-500">
+            <Upload size={48} className="mb-4 opacity-50" />
+            <p className="text-xl font-medium mb-2">No images yet</p>
+            <p className="mb-6">Upload images to start your collection</p>
+            <button
+              onClick={handleUploadClick}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
-              <div className="aspect-square w-full overflow-hidden bg-slate-900 relative">
-                <img
-                  src={src}
-                  alt={`Collection item ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error("Image load error:", src, e);
-                    e.currentTarget.style.display = "none";
-                    e.currentTarget.parentElement?.classList.add(
-                      "flex",
-                      "items-center",
-                      "justify-center",
-                      "text-red-500",
-                    );
-                    e.currentTarget.parentElement!.innerHTML =
-                      "<span>Failed to load</span>";
-                  }}
-                />
-              </div>
-              <div className="p-3 bg-slate-800 flex justify-between items-center border-t border-slate-700">
-                <span className="text-xs text-slate-400 truncate flex-1 pr-2">
-                  Image {index + 1}
-                </span>
-                <button
-                  onClick={() => removeImage(index)}
-                  className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  title="Remove image"
+              <Plus size={20} />
+              <span>Add Images</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max pb-20">
+            {images.map((img) => (
+              <div
+                key={img.id}
+                className="group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500"
+              >
+                <div
+                  className="aspect-square w-full overflow-hidden bg-slate-900 relative cursor-pointer"
+                  onClick={() => setSelectedImage(img)}
+                  title="View full size"
                 >
-                  <X size={18} />
-                </button>
+                  <img
+                    src={img.url}
+                    alt={img.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                    onError={(e) => {
+                      console.error("Image load error:", img.url, e);
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.parentElement?.classList.add(
+                        "flex",
+                        "items-center",
+                        "justify-center",
+                        "text-red-500",
+                      );
+                      e.currentTarget.parentElement!.innerHTML =
+                        "<span>Failed to load</span>";
+                    }}
+                  />
+                </div>
+                <div className="p-3 bg-slate-800 flex justify-between items-center border-t border-slate-700 gap-2">
+                  <input
+                    className="text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate flex-1 transition-all"
+                    value={img.name}
+                    onChange={(e) => handleRename(img.id, e.target.value)}
+                    placeholder="Image Name"
+                  />
+                  <button
+                    onClick={() => removeImage(img.id)}
+                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0"
+                    title="Remove image"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+            <button
+              onClick={handleUploadClick}
+              className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group"
+            >
+              <div className="p-4 rounded-full bg-slate-800 group-hover:bg-blue-500/10 mb-3 transition-colors">
+                <Plus size={32} />
+              </div>
+              <span className="font-medium">Add More</span>
+            </button>
+          </div>
+        )}
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/*"
+          multiple
+          className="hidden"
+        />
+      </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-8 animate-in fade-in duration-200"
+          onClick={() => setSelectedImage(null)}
+        >
           <button
-            onClick={handleUploadClick}
-            className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group"
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-2"
           >
-            <div className="p-4 rounded-full bg-slate-800 group-hover:bg-blue-500/10 mb-3 transition-colors">
-              <Plus size={32} />
-            </div>
-            <span className="font-medium">Add More</span>
+            <X size={32} />
           </button>
+          <img
+            src={selectedImage.url}
+            alt={selectedImage.name}
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()} // Prevent clicking image from closing modal
+          />
+          <div className="absolute bottom-8 left-0 right-0 text-center">
+            <span className="text-white/80 bg-black/50 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
+              {selectedImage.name}
+            </span>
+          </div>
         </div>
       )}
-
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        multiple
-        className="hidden"
-      />
-    </div>
+    </>
   );
 };
