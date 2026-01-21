@@ -271,7 +271,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-4xl mx-auto p-8 pt-12">
+    <div className="flex flex-col h-full w-full max-w-4xl mx-auto p-2 md:p-8 md:pt-12 pb-20 md:pb-8">
       <input
         type="text"
         value={note.title}
@@ -281,160 +281,166 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
       />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 mb-4 border-b border-slate-800 flex-wrap sticky top-0 bg-slate-900/95 backdrop-blur z-10">
-        <MenuButton
-          onClick={() => editor?.chain().focus().toggleBold().run()}
-          isActive={editor?.isActive("bold")}
-          title="Bold (Ctrl+B)"
-        >
-          <Bold size={18} />
-        </MenuButton>
-        <MenuButton
-          onClick={() => editor?.chain().focus().toggleItalic().run()}
-          isActive={editor?.isActive("italic")}
-          title="Italic (Ctrl+I)"
-        >
-          <Italic size={18} />
-        </MenuButton>
-        <MenuButton
-          onClick={() => editor?.chain().focus().toggleStrike().run()}
-          isActive={editor?.isActive("strike")}
-          title="Strike (Ctrl+Shift+X)"
-        >
-          <Strikethrough size={18} />
-        </MenuButton>
+      <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-2 p-2 mb-4 border-b border-slate-800 sticky top-0 bg-slate-900/95 backdrop-blur z-10">
+        {/* Row 1: Basic Formatting & Color */}
+        <div className="flex items-center justify-between md:justify-start gap-1 p-1 bg-slate-800/50 rounded-lg md:bg-transparent md:p-0">
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            isActive={editor?.isActive("bold")}
+            title="Bold (Ctrl+B)"
+          >
+            <Bold size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            isActive={editor?.isActive("italic")}
+            title="Italic (Ctrl+I)"
+          >
+            <Italic size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleStrike().run()}
+            isActive={editor?.isActive("strike")}
+            title="Strike (Ctrl+Shift+X)"
+          >
+            <Strikethrough size={18} />
+          </MenuButton>
 
-        <div className="w-px h-6 bg-slate-700 mx-1" />
+          <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
 
-        {/* Color Picker Only */}
-        <div className="flex items-center gap-1 mx-1" title="Text Color">
-          <input
-            type="color"
-            onInput={(event) =>
-              editor
-                ?.chain()
-                .focus()
-                .setColor((event.target as HTMLInputElement).value)
-                .run()
+          {/* Color Picker */}
+          <div className="flex items-center gap-1 mx-1" title="Text Color">
+            <input
+              type="color"
+              onInput={(event) =>
+                editor
+                  ?.chain()
+                  .focus()
+                  .setColor((event.target as HTMLInputElement).value)
+                  .run()
+              }
+              className="w-8 h-8 rounded bg-transparent cursor-pointer border-none p-0"
+              value={editor?.getAttributes("textStyle").color || "#e2e8f0"}
+            />
+          </div>
+        </div>
+
+        {/* Row 2: Typography Settings */}
+        <div className="flex items-center justify-between md:justify-start gap-1 p-1 bg-slate-800/50 rounded-lg md:bg-transparent md:p-0">
+          {/* Font Size */}
+          <div className="flex items-center gap-1 mx-1" title="Font Size (px)">
+            <input
+              type="number"
+              min="8"
+              max="128"
+              value={fontSize}
+              onChange={handleFontSizeChange}
+              className="w-14 bg-slate-800 text-slate-100 border border-slate-700 rounded p-1 text-sm focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-slate-500 text-xs">px</span>
+          </div>
+
+          <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
+
+          {/* Line Height */}
+          <div
+            className="flex items-center gap-1 mx-1"
+            title="Line Height (Interlineado)"
+          >
+            <Type size={16} className="text-slate-400" />
+            <input
+              type="number"
+              min="1.0"
+              max="3.0"
+              step="0.1"
+              value={lineHeight}
+              onChange={handleLineHeightChange}
+              className="w-12 bg-slate-800 text-slate-100 border border-slate-700 rounded p-1 text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <MenuButton
+            onClick={() => editor?.chain().focus().unsetAllMarks().run()}
+            title="Clear Formatting"
+          >
+            <RemoveFormatting size={18} />
+          </MenuButton>
+        </div>
+
+        {/* Row 3: Structure & Lists */}
+        <div className="flex items-center justify-between md:justify-start gap-1 p-1 bg-slate-800/50 rounded-lg md:bg-transparent md:p-0">
+          <MenuButton
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
             }
-            className="w-8 h-8 rounded bg-transparent cursor-pointer border-none p-0"
-            value={editor?.getAttributes("textStyle").color || "#e2e8f0"}
-          />
+            isActive={editor?.isActive("heading", { level: 1 })}
+            title="Heading 1"
+          >
+            <Heading1 size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            isActive={editor?.isActive("heading", { level: 2 })}
+            title="Heading 2"
+          >
+            <Heading2 size={18} />
+          </MenuButton>
+
+          <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
+
+          <MenuButton
+            onClick={setLink}
+            isActive={editor?.isActive("link")}
+            title="Link"
+          >
+            <LinkIcon size={18} />
+          </MenuButton>
+
+          <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
+
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            isActive={editor?.isActive("bulletList")}
+            title="Bullet List"
+          >
+            <List size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            isActive={editor?.isActive("orderedList")}
+            title="Ordered List"
+          >
+            <ListOrdered size={18} />
+          </MenuButton>
         </div>
 
-        <div className="w-px h-6 bg-slate-700 mx-1" />
+        {/* Row 4: History & Tools */}
+        <div className="flex items-center justify-between md:justify-start gap-1 p-1 bg-slate-800/50 rounded-lg md:bg-transparent md:p-0 ml-auto">
+          <MenuButton
+            onClick={() => setShowLineNumbers(!showLineNumbers)}
+            isActive={showLineNumbers}
+            title="Toggle Line Numbers"
+          >
+            <Hash size={18} />
+          </MenuButton>
 
-        {/* Font Size Input */}
-        <div className="flex items-center gap-1 mx-1" title="Font Size (px)">
-          <input
-            type="number"
-            min="8"
-            max="128"
-            value={fontSize}
-            onChange={handleFontSizeChange}
-            className="w-16 bg-slate-800 text-slate-100 border border-slate-700 rounded p-1 text-sm focus:outline-none focus:border-blue-500"
-          />
-          <span className="text-slate-500 text-xs">px</span>
+          <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
+
+          <MenuButton
+            onClick={() => editor?.chain().focus().undo().run()}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() => editor?.chain().focus().redo().run()}
+            title="Redo (Ctrl+Y)"
+          >
+            <Redo size={18} />
+          </MenuButton>
         </div>
-
-        <div className="w-px h-6 bg-slate-700 mx-1" />
-
-        {/* Line Height Input */}
-        <div
-          className="flex items-center gap-1 mx-1"
-          title="Line Height (Interlineado)"
-        >
-          <Type size={16} className="text-slate-400" />
-          <input
-            type="number"
-            min="1.0"
-            max="3.0"
-            step="0.1"
-            value={lineHeight}
-            onChange={handleLineHeightChange}
-            className="w-14 bg-slate-800 text-slate-100 border border-slate-700 rounded p-1 text-sm focus:outline-none focus:border-blue-500"
-          />
-        </div>
-
-        <MenuButton
-          onClick={() => editor?.chain().focus().unsetAllMarks().run()}
-          title="Clear Formatting"
-        >
-          <RemoveFormatting size={18} />
-        </MenuButton>
-
-        <div className="w-px h-6 bg-slate-700 mx-1" />
-
-        <MenuButton
-          onClick={() =>
-            editor?.chain().focus().toggleHeading({ level: 1 }).run()
-          }
-          isActive={editor?.isActive("heading", { level: 1 })}
-          title="Heading 1"
-        >
-          <Heading1 size={18} />
-        </MenuButton>
-        <MenuButton
-          onClick={() =>
-            editor?.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-          isActive={editor?.isActive("heading", { level: 2 })}
-          title="Heading 2"
-        >
-          <Heading2 size={18} />
-        </MenuButton>
-
-        <div className="w-px h-6 bg-slate-700 mx-1" />
-
-        <MenuButton
-          onClick={setLink}
-          isActive={editor?.isActive("link")}
-          title="Link"
-        >
-          <LinkIcon size={18} />
-        </MenuButton>
-
-        <div className="w-px h-6 bg-slate-700 mx-1" />
-
-        <MenuButton
-          onClick={() => editor?.chain().focus().toggleBulletList().run()}
-          isActive={editor?.isActive("bulletList")}
-          title="Bullet List"
-        >
-          <List size={18} />
-        </MenuButton>
-        <MenuButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          isActive={editor?.isActive("orderedList")}
-          title="Ordered List"
-        >
-          <ListOrdered size={18} />
-        </MenuButton>
-
-        <div className="w-px h-6 bg-slate-700 mx-1" />
-
-        <MenuButton
-          onClick={() => setShowLineNumbers(!showLineNumbers)}
-          isActive={showLineNumbers}
-          title="Toggle Line Numbers"
-        >
-          <Hash size={18} />
-        </MenuButton>
-
-        <div className="w-px h-6 bg-slate-700 mx-1 ml-auto" />
-
-        <MenuButton
-          onClick={() => editor?.chain().focus().undo().run()}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo size={18} />
-        </MenuButton>
-        <MenuButton
-          onClick={() => editor?.chain().focus().redo().run()}
-          title="Redo (Ctrl+Y)"
-        >
-          <Redo size={18} />
-        </MenuButton>
       </div>
 
       <div

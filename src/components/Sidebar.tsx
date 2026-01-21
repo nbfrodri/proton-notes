@@ -42,11 +42,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             key={note.id}
             onClick={() => onNoteSelect(note.id)}
             className={`
-                        group relative p-3 rounded-lg cursor-pointer transition-all duration-200
+                        group relative p-3 md:p-3 py-4 rounded-lg cursor-pointer transition-all duration-200
                         ${
                           activeNoteId === note.id
                             ? "bg-white/10 text-white shadow-lg"
-                            : "hover:bg-white/5 hover:text-white"
+                            : "hover:bg-white/5 hover:text-white active:bg-white/5"
                         }
                     `}
           >
@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <button
               onClick={(e) => onDeleteNote(note.id, e)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 hover:bg-red-900/20 rounded-md transition-all p-2"
+              className="absolute right-2 top-1/2 -translate-y-1/2 md:opacity-0 md:group-hover:opacity-100 text-slate-400 hover:text-red-400 hover:bg-red-900/20 rounded-md transition-all p-3"
               title="Delete note"
             >
               <span className="text-xl leading-none">×</span>

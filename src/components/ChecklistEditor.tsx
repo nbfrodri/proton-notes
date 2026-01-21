@@ -141,7 +141,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           type="checkbox"
           checked={item.checked}
           onChange={(e) => updateItem(item.id, { checked: e.target.checked })}
-          className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
+          className="w-6 h-6 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer shrink-0"
         />
 
         <input
@@ -163,9 +163,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
         <button
           onClick={() => deleteItem(item.id)}
-          className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-3 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
         >
-          <X size={18} />
+          <X size={20} />
         </button>
       </div>
 
@@ -322,7 +322,7 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
   if (!note) return null;
 
   return (
-    <div className="flex flex-col h-full w-full max-w-4xl mx-auto p-8 pt-12">
+    <div className="flex flex-col h-full w-full max-w-4xl mx-auto p-4 md:p-8 md:pt-12 pb-20 md:pb-8">
       <input
         type="text"
         value={note.title}

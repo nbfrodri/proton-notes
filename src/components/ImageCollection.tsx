@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { type Note } from "../types";
 import { Plus, X, Upload, ChevronLeft, ChevronRight } from "lucide-react";
+import { storageService } from "../services/storage";
 
 interface ImageCollectionProps {
   note: Note | undefined;
@@ -73,7 +74,7 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
         console.log(`ImageCollection: Processing file ${file.name}`);
         try {
           const buffer = await file.arrayBuffer();
-          const imagePath = await window.electronAPI.saveImage(buffer);
+          const imagePath = await storageService.saveImage(buffer);
 
           // Use filename as default name (remove extension)
           const name = file.name.replace(/\.[^/.]+$/, "");
@@ -152,11 +153,41 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedImageIndex, goToNext, goToPrev]);
 
+  // Touch/Swipe Logic
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEnd.current = null; // Reset
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNext(); // Swipe Left -> Next Image
+    }
+    if (isRightSwipe) {
+      goToPrev(); // Swipe Right -> Prev Image
+    }
+  };
+
   if (!note) return null;
 
   return (
     <>
-      <div className="flex flex-col h-full w-full max-w-6xl mx-auto p-8 pt-12">
+      <div className="flex flex-col h-full w-full max-w-6xl mx-auto p-4 md:p-8 md:pt-12 pb-20 md:pb-8">
         <input
           type="text"
           value={note.title}
@@ -179,7 +210,7 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-max pb-20">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-max pb-20">
             {images.map((img, index) => (
               <div
                 key={img.id}
@@ -218,10 +249,10 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
                   />
                   <button
                     onClick={() => removeImage(img.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0"
+                    className="p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0"
                     title="Remove image"
                   >
-                    <X size={18} />
+                    <X size={20} />
                   </button>
                 </div>
               </div>
@@ -253,12 +284,15 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-8 animate-in fade-in duration-200"
           onClick={() => setSelectedImageIndex(null)}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           {/* Close Button Removed as requested */}
 
-          {/* Previous Button */}
+          {/* Previous Button - Hidden on mobile */}
           <button
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50 hidden md:block"
             onClick={(e) => {
               e.stopPropagation();
               goToPrev();
@@ -268,9 +302,9 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
             <ChevronLeft size={48} />
           </button>
 
-          {/* Next Button */}
+          {/* Next Button - Hidden on mobile */}
           <button
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50 hidden md:block"
             onClick={(e) => {
               e.stopPropagation();
               goToNext();
@@ -284,11 +318,12 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           <img
             src={images[selectedImageIndex].url}
             alt={images[selectedImageIndex].name}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none"
             onClick={(e) => e.stopPropagation()}
+            draggable={false}
           />
 
-          <div className="absolute bottom-8 left-0 right-0 text-center pointer-events-none">
+          <div className="absolute bottom-16 md:bottom-8 left-0 right-0 text-center pointer-events-none">
             <span className="text-white/80 bg-black/50 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
               {images[selectedImageIndex].name} ({selectedImageIndex + 1} /{" "}
               {images.length})
