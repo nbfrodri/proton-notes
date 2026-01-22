@@ -13,6 +13,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -120,7 +121,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-400 p-1 shrink-0"
+          className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-400 p-1 shrink-0 touch-none"
         >
           <GripVertical size={20} />
         </div>
@@ -257,7 +258,17 @@ export const ChecklistEditor: React.FC<ChecklistEditorProps> = ({
   const [items, setItems] = useState<ChecklistItem[]>([]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Require 8px movement to start drag (allows scrolling)
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),

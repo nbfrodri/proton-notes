@@ -2,11 +2,117 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { type Note } from "../types";
 import { Plus, X, Upload, ChevronLeft, ChevronRight } from "lucide-react";
 import { storageService } from "../services/storage";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  MouseSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  TouchSensor,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface ImageCollectionProps {
   note: Note | undefined;
   onUpdate: (id: string, updates: Partial<Note>) => void;
 }
+
+const SortableImage = ({
+  img,
+  removeImage,
+  handleRename,
+  onClick,
+}: {
+  img: { id: string; url: string; name: string };
+  removeImage: (id: string) => void;
+  handleRename: (id: string, name: string) => void;
+  onClick: () => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: img.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500 touch-manipulation select-none ${
+        isDragging ? "z-50 opacity-50" : ""
+      }`}
+    >
+      <div
+        className="aspect-square w-full overflow-hidden bg-slate-900 relative cursor-pointer"
+        onClick={onClick}
+        title="View full size"
+      >
+        <img
+          src={img.url}
+          alt={img.name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+          draggable={false}
+          onError={(e) => {
+            console.error("Image load error:", img.url, e);
+            e.currentTarget.style.display = "none";
+            e.currentTarget.parentElement?.classList.add(
+              "flex",
+              "items-center",
+              "justify-center",
+              "text-red-500",
+            );
+            e.currentTarget.parentElement!.innerHTML =
+              "<span>Failed to load</span>";
+          }}
+        />
+      </div>
+      <div className="grid grid-cols-[1fr_auto] divide-x divide-slate-700 bg-slate-800 border-t border-slate-700">
+        <div className="p-2 md:p-3 min-w-0 flex items-center">
+          <input
+            className="w-full text-[10px] md:text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate transition-all"
+            value={img.name}
+            onChange={(e) => handleRename(img.id, e.target.value)}
+            placeholder="Image Name"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()} // Allow input focus
+            onKeyDown={(e) => e.stopPropagation()}
+          />
+        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeImage(img.id);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex items-center justify-center px-4 md:px-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+          title="Remove image"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const ImageCollection: React.FC<ImageCollectionProps> = ({
   note,
@@ -21,6 +127,23 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
   // Parse images from content on load
   useEffect(() => {
     if (note?.content) {
@@ -34,7 +157,6 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
             }
             return item;
           });
-          console.log("ImageCollection: Loaded images", normalized);
           setImages(normalized);
         } else {
           setImages([]);
@@ -57,6 +179,30 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
     setImages(newImages);
     if (note) {
       onUpdate(note.id, { content: JSON.stringify(newImages) });
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setImages((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        if (note) {
+          // Defer update to avoid state mismatch during drag?
+          // Actually usually fine. But better to update store after state.
+          // Using callback form setImages is good, but we need to update note.
+          // We can do it in useEffect or here. Here is fine.
+          setTimeout(
+            () => onUpdate(note.id, { content: JSON.stringify(newItems) }),
+            0,
+          );
+          return newItems;
+        }
+        return newItems;
+      });
     }
   };
 
@@ -196,84 +342,49 @@ export const ImageCollection: React.FC<ImageCollectionProps> = ({
           className="bg-transparent text-4xl font-bold text-white placeholder-slate-600 focus:outline-none mb-8 w-full"
         />
 
-        {images.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl p-12 text-slate-500">
-            <Upload size={48} className="mb-4 opacity-50" />
-            <p className="text-xl font-medium mb-2">No images yet</p>
-            <p className="mb-6">Upload images to start your collection</p>
-            <button
-              onClick={handleUploadClick}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              <Plus size={20} />
-              <span>Add Images</span>
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-max pb-20">
-            {images.map((img, index) => (
-              <div
-                key={img.id}
-                className="group relative flex flex-col bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm hover:shadow-md transition-all hover:border-slate-500"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          {images.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-2xl p-12 text-slate-500">
+              <Upload size={48} className="mb-4 opacity-50" />
+              <p className="text-xl font-medium mb-2">No images yet</p>
+              <p className="mb-6">Upload images to start your collection</p>
+              <button
+                onClick={handleUploadClick}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               >
-                <div
-                  className="aspect-square w-full overflow-hidden bg-slate-900 relative cursor-pointer"
-                  onClick={() => setSelectedImageIndex(index)}
-                  title="View full size"
-                >
-                  <img
-                    src={img.url}
-                    alt={img.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                    onError={(e) => {
-                      console.error("Image load error:", img.url, e);
-                      e.currentTarget.style.display = "none";
-                      e.currentTarget.parentElement?.classList.add(
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                        "text-red-500",
-                      );
-                      e.currentTarget.parentElement!.innerHTML =
-                        "<span>Failed to load</span>";
-                    }}
+                <Plus size={20} />
+                <span>Add Images</span>
+              </button>
+            </div>
+          ) : (
+            <SortableContext items={images} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-max pb-20">
+                {images.map((img, index) => (
+                  <SortableImage
+                    key={img.id}
+                    img={img}
+                    removeImage={removeImage}
+                    handleRename={handleRename}
+                    onClick={() => setSelectedImageIndex(index)}
                   />
-                </div>
-                <div className="grid grid-cols-[1fr_auto] divide-x divide-slate-700 bg-slate-800 border-t border-slate-700">
-                  <div className="p-2 md:p-3 min-w-0 flex items-center">
-                    <input
-                      className="w-full text-[10px] md:text-xs text-slate-300 bg-transparent border border-transparent hover:border-slate-600 focus:border-blue-500 focus:bg-slate-900 focus:outline-none rounded px-1 py-0.5 truncate transition-all"
-                      value={img.name}
-                      onChange={(e) => handleRename(img.id, e.target.value)}
-                      placeholder="Image Name"
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                ))}
+                <button
+                  onClick={handleUploadClick}
+                  className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group"
+                >
+                  <div className="p-4 rounded-full bg-slate-800 group-hover:bg-blue-500/10 mb-3 transition-colors">
+                    <Plus size={32} />
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeImage(img.id);
-                    }}
-                    className="flex items-center justify-center px-4 md:px-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                    title="Remove image"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
+                  <span className="font-medium">Add More</span>
+                </button>
               </div>
-            ))}
-            <button
-              onClick={handleUploadClick}
-              className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-xl text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-blue-400/5 transition-all group"
-            >
-              <div className="p-4 rounded-full bg-slate-800 group-hover:bg-blue-500/10 mb-3 transition-colors">
-                <Plus size={32} />
-              </div>
-              <span className="font-medium">Add More</span>
-            </button>
-          </div>
-        )}
+            </SortableContext>
+          )}
+        </DndContext>
 
         <input
           type="file"

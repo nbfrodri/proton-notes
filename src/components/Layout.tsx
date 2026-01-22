@@ -1,47 +1,70 @@
-import React, { useState } from "react";
-import { Menu } from "lucide-react";
+import React from "react";
+import { Menu, X } from "lucide-react";
 
 interface LayoutProps {
   sidebar: React.ReactNode;
   content: React.ReactNode;
+  isSidebarOpen: boolean;
+  onSidebarChange: (isOpen: boolean) => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ sidebar, content }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+export const Layout: React.FC<LayoutProps> = ({
+  sidebar,
+  content,
+  isSidebarOpen,
+  onSidebarChange,
+}) => {
   return (
     <div className="flex h-screen w-screen bg-slate-900 text-slate-100 overflow-hidden relative">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={() => onSidebarChange(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 border-r border-slate-800 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out
-          md:relative md:translate-x-0 md:w-64 md:shadow-none
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          fixed z-50 flex flex-col shadow-2xl transition-all duration-300 ease-in-out
+          md:relative md:inset-auto md:top-0 md:left-0 md:transform-none md:w-64 md:h-full md:shadow-none md:border-r md:border-slate-800 md:opacity-100 md:pointer-events-auto md:bg-slate-950 md:rounded-none md:translate-x-0 md:translate-y-0
+          ${
+            isSidebarOpen
+              ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm h-[80%] rounded-2xl border border-slate-700 bg-slate-950"
+              : "top-1/2 left-1/2 -translate-x-[200%] -translate-y-1/2 w-[90%] h-[80%] opacity-0 pointer-events-none bg-slate-950 md:opacity-100 md:pointer-events-auto"
+          }
         `}
       >
+        {/* Mobile Close Button */}
         {sidebar}
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => onSidebarChange(false)}
+          className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4 z-50 p-2 text-slate-400 hover:text-white md:hidden bg-slate-900/50 rounded-full backdrop-blur-sm"
+          style={
+            { WebkitAppRegion: "no-drag" } as unknown as React.CSSProperties
+          }
+        >
+          <X size={20} />
+        </button>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-slate-900 relative w-full">
-        {/* Drag region for Electron title bar */}
+      <main className="flex-1 flex flex-col bg-slate-900 relative w-full h-full overflow-hidden">
+        {/* Drag region for Electron title bar - Desktop & Mobile */}
         <div
-          className="h-20 md:h-8 w-full select-none flex items-center px-4 md:px-0 pt-10 md:pt-0"
-          style={{ WebkitAppRegion: "drag" } as any}
+          className="min-h-10 md:h-8 w-full select-none flex items-center px-4 md:px-0 shrink-0 pt-[env(safe-area-inset-top)] pb-2 md:pb-0 md:pt-0"
+          style={{ WebkitAppRegion: "drag" } as unknown as React.CSSProperties}
         >
           {/* Mobile Hamburger Button */}
           <button
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => onSidebarChange(true)}
             className="text-slate-400 hover:text-white md:hidden mr-4"
-            style={{ WebkitAppRegion: "no-drag" } as any}
+            style={
+              { WebkitAppRegion: "no-drag" } as unknown as React.CSSProperties
+            }
           >
             <Menu size={28} />
           </button>

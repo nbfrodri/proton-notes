@@ -10,39 +10,70 @@ import { useNotes } from "./store/useNotes";
 function App() {
   const {
     notes,
+    folders,
     activeNoteId,
     setActiveNoteId,
     addNote,
     updateNote,
     deleteNote,
+    addFolder,
+    updateFolder,
+    deleteFolder,
+    reorderNotes,
+    reorderFolders,
   } = useNotes();
 
-  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    type: "note" | "folder";
+    id: string;
+  } | null>(null);
 
   const activeNote = notes.find((n) => n.id === activeNoteId);
 
-  const handleDeleteClick = (id: string, e: React.MouseEvent) => {
+  const requestDeleteNote = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNoteToDelete(id);
+    setDeleteConfirmation({ type: "note", id });
+  };
+
+  const requestDeleteFolder = (id: string) => {
+    setDeleteConfirmation({ type: "folder", id });
   };
 
   const confirmDelete = () => {
-    if (noteToDelete) {
-      deleteNote(noteToDelete);
-      setNoteToDelete(null);
+    if (deleteConfirmation) {
+      if (deleteConfirmation.type === "note") {
+        deleteNote(deleteConfirmation.id);
+      } else {
+        deleteFolder(deleteConfirmation.id);
+      }
+      setDeleteConfirmation(null);
     }
   };
 
   return (
     <>
       <Layout
+        isSidebarOpen={isSidebarOpen}
+        onSidebarChange={setIsSidebarOpen}
         sidebar={
           <Sidebar
             notes={notes}
+            folders={folders}
             activeNoteId={activeNoteId}
-            onNoteSelect={setActiveNoteId}
+            onNoteSelect={(id) => {
+              setActiveNoteId(id);
+              setIsSidebarOpen(false); // Close sidebar on selection
+            }}
             onAddNote={addNote}
-            onDeleteNote={handleDeleteClick}
+            onDeleteNote={requestDeleteNote}
+            onAddFolder={addFolder}
+            onUpdateFolder={updateFolder}
+            onDeleteFolder={requestDeleteFolder}
+            onUpdateNote={updateNote}
+            onReorderNotes={reorderNotes}
+            onReorderFolders={reorderFolders}
           />
         }
         content={
@@ -57,11 +88,19 @@ function App() {
       />
 
       <ConfirmationModal
-        isOpen={!!noteToDelete}
-        onClose={() => setNoteToDelete(null)}
+        isOpen={!!deleteConfirmation}
+        onClose={() => setDeleteConfirmation(null)}
         onConfirm={confirmDelete}
-        title="Delete Note"
-        message="Are you sure you want to delete this note? This action cannot be undone."
+        title={
+          deleteConfirmation?.type === "folder"
+            ? "Delete Folder"
+            : "Delete Note"
+        }
+        message={
+          deleteConfirmation?.type === "folder"
+            ? "Are you sure you want to delete this folder? Notes inside will become unfiled."
+            : "Are you sure you want to delete this note? This action cannot be undone."
+        }
         confirmLabel="Delete"
         isDestructive={true}
       />

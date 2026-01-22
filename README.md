@@ -27,29 +27,30 @@ A powerful writing experience powered by **TipTap**, now fully responsive:
 - **Mobile Toolbar**: Smartly grouped tools that fit perfectly on small screens without clutter.
 - **Developer Friendly**: Toggle **Line Numbers** for code-like readability.
 - **Smart Links**: Auto-linking and easy URL management.
-- **Typography**: Headings, lists, bold, italic, and more.
+- **Typography**: Headings, lists, bold, italic, **blockquotes**, **code blocks**, and more.
 
-### ✅ Advanced Checklists
+### 📂 Smart Organization
 
-Stay organized with a task manager that goes beyond simple checkboxes:
+- +- **Folders**: Create folders to organize your notes.
+  +- **Drag & Drop Reordering**: Long-press and drag to reorder notes, folders, tasks, and images on both desktop and mobile.
+  +- **Drag to Move**: Drag notes into folders to file them away.
+- +### ✅ Advanced Checklists
+- +Stay organized with a task manager that goes beyond simple checkboxes:
+- +- **Drag & Drop**: Reorder your tasks intuitively using **@dnd-kit** (works with touch!).
+  +- **Deep Details**: Expand any task to add a detailed **description**.
+  +- **Subtasks**: Break down complex items into manageable sub-steps.
+- +### 🖼️ Image Collections & Gestures
+- +- **Visual Notes**: Create dedicated folders for your images.
+  +- **Swipe Navigation**: On mobile, simple **swipe left/right** gestures let you browse your gallery effortlessly.
+  +- **Drag Reordering**: Organize your image collections by dragging images to new positions.
+  +- **Native Storage**: Uses your device's native file system for efficient storage.
+- +### 🎨 Modern UI
+- +- **Responsive Design**: Automatically adapts from a desktop sidebar to a mobile **Drawer Navigation** with hamburger menu.
+  +- **Mobile Optimized**: Sidebar allows swipe gestures, and modals are designed for touch.
+  +- **Safe Area Aware**: Designed to respect mobile notches and status bars.
+  +- **Dark Mode**: Built with a "dark-first" aesthetic using **TailwindCSS**.
 
-- **Drag & Drop**: Reorder your tasks intuitively using **@dnd-kit** (works with touch!).
-- **Deep Details**: Expand any task to add a detailed **description**.
-- **Subtasks**: Break down complex items into manageable sub-steps.
-
-### 🖼️ Image Collections & Gestures
-
-- **Visual Notes**: Create dedicated folders for your images.
-- **Swipe Navigation**: On mobile, simple **swipe left/right** gestures let you browse your gallery effortlessly.
-- **Native Storage**: Uses your device's native file system for efficient storage.
-
-### 🎨 Modern UI
-
-- **Responsive Design**: Automatically adapts from a desktop sidebar to a mobile **Drawer Navigation** with hamburger menu.
-- **Safe Area Aware**: Designed to respect mobile notches and status bars.
-- **Dark Mode**: Built with a "dark-first" aesthetic using **TailwindCSS**.
-
----
+  ***
 
 ## 🛠️ Tech Stack
 

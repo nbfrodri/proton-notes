@@ -19,6 +19,8 @@ import {
   Hash,
   RemoveFormatting,
   Type,
+  Code2,
+  Quote,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { type Note } from "../types";
@@ -105,7 +107,10 @@ const MenuButton = ({
   className?: string;
 }) => (
   <button
-    onClick={onClick}
+    onClick={(e) => {
+      e.preventDefault(); // Prevent focus loss
+      onClick();
+    }}
     title={title}
     className={twMerge(
       "p-2 rounded hover:bg-slate-700 transition-colors text-slate-400 hover:text-slate-100",
@@ -124,7 +129,19 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        codeBlock: {
+          HTMLAttributes: {
+            class: "bg-slate-800 p-3 rounded-lg font-mono text-sm my-2",
+          },
+        },
+        blockquote: {
+          HTMLAttributes: {
+            class:
+              "border-l-4 border-slate-500 pl-4 italic my-2 text-slate-400",
+          },
+        },
+      }),
       Placeholder.configure({
         placeholder: "Start writing...",
       }),
@@ -396,6 +413,22 @@ export const RichEditor: React.FC<RichEditorProps> = ({ note, onUpdate }) => {
             title="Link"
           >
             <LinkIcon size={18} />
+          </MenuButton>
+
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+            isActive={editor?.isActive("codeBlock")}
+            title="Code Block"
+          >
+            <Code2 size={18} />
+          </MenuButton>
+
+          <MenuButton
+            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+            isActive={editor?.isActive("blockquote")}
+            title="Quote"
+          >
+            <Quote size={18} />
           </MenuButton>
 
           <div className="w-px h-6 bg-slate-700 mx-1 hidden md:block" />
