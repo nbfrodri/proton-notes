@@ -318,6 +318,28 @@ const FolderItem = ({
   );
 };
 
+// ... imports remain the same
+
+// Helper for drop zone ref on the header
+const DroppableHeader = ({ children }: { children: React.ReactNode }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "root-header-droppable",
+    data: { type: "root-drop-zone" },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`mt-4 mb-2 px-2 text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between transition-colors ${
+        isOver ? "bg-indigo-500/20 text-indigo-300 rounded-lg py-1" : ""
+      }`}
+    >
+      {children}
+    </div>
+  );
+};
+// ... rest of file until Sidebar component definition
+
 export const Sidebar: React.FC<SidebarProps> = ({
   notes,
   folders,
@@ -340,7 +362,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     data: Note | Folder;
   } | null>(null);
 
-  const { setNodeRef: setRootNodeRef } = useDroppable({
+  const { setNodeRef: setRootNodeRef, isOver: isRootOver } = useDroppable({
     id: "root-droppable",
     data: { type: "root-drop-zone" },
   });
@@ -353,7 +375,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
+        delay: 150, // Reduced from 250ms for better responsiveness
         tolerance: 5,
       },
     }),
@@ -425,15 +447,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             ? (over.id as string)
             : (over.data.current?.folderId as string);
 
-        // If dragging onto same folder, do nothing unless it's for sorting (handled below)
-        // But if dropping ON container, usually means "move into"
-        // If dropping ON item in container, means "sort near"
-        // Let's distinguish:
-        // Use separate ID for folder droppable vs folder sortable item?
-        // In FolderItem component:
-        // Sortable ID: folder.id
-        // Droppable ID: droppable-{folder.id}
-
         if (String(over.id).startsWith("droppable-") || overType === "folder") {
           // Move to folder
           if (note.folderId !== targetFolderId) {
@@ -441,15 +454,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             // Auto expand
             setExpandedFolders((prev) => new Set(prev).add(targetFolderId));
           }
-          // If same folder, let sort logic handle it?
-          // But dropping on "Folder Header" (which is the over here) should probably just move it to end?
-          // SortableContext handles reorder if over is another Note.
           return;
         }
       }
 
-      // 2. Move to Root (Dropping onto Unfiled Area)
-      if (over.id === "root-droppable") {
+      // 2. Move to Root (Dropping onto Unfiled Area or Header)
+      if (over.id === "root-droppable" || over.id === "root-header-droppable") {
         if (note.folderId) {
           onUpdateNote(noteId, { folderId: undefined });
         }
@@ -459,11 +469,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       // 3. Reordering Notes
       if (overType === "note") {
         const overNote = over.data.current?.note as Note;
-
-        // If different containers (folders), move note to new container at specific index?
-        // Integrating move + sort is tricky.
-        // Simplest: If folders match, reorder. If not, also move.
-
         const activeFolderId = note.folderId;
         const overFolderId = overNote.folderId;
 
@@ -471,16 +476,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           // Changed folder (and order)
           // 1. Update folderId
           onUpdateNote(noteId, { folderId: overFolderId });
-          // 2. We can try to reorder too, but might need to wait for state update.
-          // For now just move.
           return;
         }
 
         // Same folder reordering
         if (active.id !== over.id) {
-          // Get all notes (global list)
-          // Reorder the global list?
-          // Yes, notes state is a flat array.
           const oldIndex = notes.findIndex((n) => n.id === active.id);
           const newIndex = notes.findIndex((n) => n.id === over.id);
           onReorderNotes(arrayMove(notes, oldIndex, newIndex));
@@ -490,8 +490,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const unfiledNotes = notes.filter((n) => !n.folderId);
-  // Do NOT sort folders alphabetically. Use natural order.
-  // Do NOT sort notes? They come from store in order.
 
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -571,11 +569,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </SortableContext>
 
           {/* Separator / Root Drop Zone */}
-          <div className="mt-4 mb-2 px-2 text-xs font-semibold text-slate-600 uppercase tracking-wider flex items-center justify-between">
+          <DroppableHeader>
             <span>Unfiled Notes</span>
-          </div>
+          </DroppableHeader>
 
-          <div ref={setRootNodeRef} className="space-y-0.5 min-h-[50px] pb-20">
+          <div
+            ref={setRootNodeRef}
+            className={`space-y-0.5 min-h-[50px] pb-20 transition-colors ${
+              isRootOver ? "bg-white/5 rounded-lg" : ""
+            }`}
+          >
             <SortableContext
               items={unfiledNotes.map((n) => n.id)}
               strategy={verticalListSortingStrategy}
