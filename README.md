@@ -69,7 +69,7 @@ This project leverages the latest ecosystem tools for maximum performance:
 - **Build**: [Vite](https://vitejs.dev/) (Super fast HMR and bundling)
 - **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
 - **Iconography**: [Lucide React](https://lucide.dev/)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand) + LocalStorage persistence
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand) + File System persistence
 - **Rich Text**: [TipTap](https://tiptap.dev/) + Extensions
 
 ---
@@ -130,12 +130,25 @@ Build via Android Studio: `Build > Build Bundle(s) / APK(s) > Build APK(s)`.
 
 ---
 
-## 💾 Data Storage
+## 💾 Data Storage & Privacy
 
-Your privacy is paramount. **NBF Notes** stores all data locally:
+Your privacy is paramount. **NBF Notes** stores all data locally on your device using a transparent file structure:
 
-- **Desktop**: `%APPDATA%\nbf-notes` (e.g., `C:\Users\You\AppData\Roaming\nbf-notes`)
-- **Mobile**: App-specific internal storage (persistent across updates)
+- **Desktop**: `%APPDATA%\nbf-notes`
+- **Mobile**: App-specific internal storage
+
+### File Structure
+
+- **Notes**: Stored as individual `.json` files in the `notes/` directory.
+- **Images**: Stored as standard image files in the `images/` directory.
+
+### 🧹 Automatic Cleanup
+
+To keep your device clean, the app performs intelligent maintenance:
+
+- **Instant Deletion**: When you delete a note, its file is immediately removed.
+- **Image Cleanup**: Deleting a note automatically deletes all its associated images.
+- **Orphan Removal**: On every startup, the app scans for "orphan" images (files not referenced by any note) and safely removes them to free up space.
 
 ---
 

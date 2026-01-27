@@ -62,6 +62,78 @@ ipcMain.handle("save-image", async (_event, arrayBuffer: ArrayBuffer) => {
   return `media://${fileName}`;
 });
 
+ipcMain.handle("save-note", async (_event, noteId: string, content: string) => {
+  const userDataPath = app.getPath("userData");
+  const notesDir = path.join(userDataPath, "notes");
+  await fs.mkdir(notesDir, { recursive: true });
+  const filePath = path.join(notesDir, `${noteId}.json`);
+  await fs.writeFile(filePath, content, "utf-8");
+  return true;
+});
+
+ipcMain.handle("delete-note", async (_event, noteId: string) => {
+  const userDataPath = app.getPath("userData");
+  const filePath = path.join(userDataPath, "notes", `${noteId}.json`);
+  try {
+    await fs.unlink(filePath);
+    return true;
+  } catch (error) {
+    console.error(`Failed to delete note ${noteId}:`, error);
+    return false;
+  }
+});
+
+ipcMain.handle("load-notes", async () => {
+  const userDataPath = app.getPath("userData");
+  const notesDir = path.join(userDataPath, "notes");
+  try {
+    await fs.mkdir(notesDir, { recursive: true });
+    const files = await fs.readdir(notesDir);
+    const notes = [];
+    for (const file of files) {
+      if (file.endsWith(".json")) {
+        const content = await fs.readFile(path.join(notesDir, file), "utf-8");
+        try {
+          notes.push(JSON.parse(content));
+        } catch (e) {
+          console.error(`Failed to parse note ${file}:`, e);
+        }
+      }
+    }
+    return notes;
+  } catch (error) {
+    console.error("Failed to load notes:", error);
+    return [];
+  }
+});
+
+ipcMain.handle("delete-image", async (_event, fileName: string) => {
+  const userDataPath = app.getPath("userData");
+  // Security check: ensure fileName doesn't contain crazy paths
+  const safeName = path.basename(fileName);
+  const filePath = path.join(userDataPath, "images", safeName);
+  try {
+    await fs.unlink(filePath);
+    return true;
+  } catch (error) {
+    // Info level because might already be gone
+    console.info(`Failed to delete image ${safeName}:`, error);
+    return false;
+  }
+});
+
+ipcMain.handle("get-all-images", async () => {
+  const userDataPath = app.getPath("userData");
+  const imagesDir = path.join(userDataPath, "images");
+  try {
+    await fs.mkdir(imagesDir, { recursive: true });
+    return await fs.readdir(imagesDir);
+  } catch (error) {
+    console.error("Failed to list images:", error);
+    return [];
+  }
+});
+
 // Register scheme as privileged
 protocol.registerSchemesAsPrivileged([
   {
