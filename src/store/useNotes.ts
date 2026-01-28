@@ -126,8 +126,10 @@ export function useNotes() {
     setFolders([...folders, newFolder]);
   };
 
-  const updateFolder = (id: string, name: string) => {
-    setFolders((prev) => prev.map((f) => (f.id === id ? { ...f, name } : f)));
+  const updateFolder = (id: string, updates: Partial<Folder>) => {
+    setFolders((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    );
   };
 
   const deleteFolder = (id: string) => {

@@ -32,6 +32,7 @@ A powerful writing experience powered by **TipTap**, now fully responsive:
 ### 📂 Smart Organization
 
 - **Folders**: Create folders to organize your notes.
+- **Folder Personalization**: Customize folder icons with a **Neon Color Palette** (Magenta, Cyan, Lime, Orange, etc.) for visual distinction.
 - **Drag & Drop Reordering**: Long-press and drag to reorder notes, folders, tasks, and images on both desktop and mobile.
 - **Drag to Move**: Drag notes into folders to file them away.
 

@@ -24,8 +24,8 @@ function createWindow() {
     },
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: "#0f172a",
-      symbolColor: "#ffffff",
+      color: "#050a14", // Deep Midnight Navy
+      symbolColor: "#00ffff", // Cyan
     },
     icon: app.isPackaged
       ? path.join(__dirname, "../dist/icon.png")

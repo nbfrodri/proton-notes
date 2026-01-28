@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   Edit2,
+  Palette,
 } from "lucide-react";
 import {
   DndContext,
@@ -41,7 +42,7 @@ interface SidebarProps {
   onAddNote: (type: "text" | "checklist" | "image", folderId?: string) => void;
   onDeleteNote: (id: string, e: React.MouseEvent) => void;
   onAddFolder: (name: string) => void;
-  onUpdateFolder: (id: string, name: string) => void;
+  onUpdateFolder: (id: string, updates: Partial<Folder>) => void;
   onDeleteFolder: (id: string) => void;
   onUpdateNote: (id: string, updates: Partial<Note>) => void;
   onReorderNotes: (notes: Note[]) => void;
@@ -80,11 +81,26 @@ const NoteItem = ({
   const getTypeIcon = (type: Note["type"]) => {
     switch (type) {
       case "checklist":
-        return <CheckSquare size={14} className="text-emerald-400" />;
+        return (
+          <CheckSquare
+            size={14}
+            className="text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]"
+          />
+        );
       case "image":
-        return <ImageIcon size={14} className="text-blue-400" />;
+        return (
+          <ImageIcon
+            size={14}
+            className="text-indigo-400 drop-shadow-[0_0_5px_rgba(129,140,248,0.5)]"
+          />
+        );
       default:
-        return <FileText size={14} className="text-indigo-400" />;
+        return (
+          <FileText
+            size={14}
+            className="text-fuchsia-400 drop-shadow-[0_0_5px_rgba(232,121,249,0.5)]"
+          />
+        );
     }
   };
 
@@ -146,7 +162,7 @@ const FolderItem = ({
   onNoteSelect: (id: string) => void;
   onAddNote: (type: "text" | "checklist" | "image", folderId: string) => void;
   onDeleteNote: (id: string, e: React.MouseEvent) => void;
-  onUpdateFolder: (id: string, name: string) => void;
+  onUpdateFolder: (id: string, updates: Partial<Folder>) => void;
   onDeleteFolder: (id: string) => void;
   onUpdateNote: (id: string, updates: Partial<Note>) => void;
 }) => {
@@ -176,10 +192,24 @@ const FolderItem = ({
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameName, setRenameName] = useState(folder.name);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+
+  const neonColors = [
+    "#e879f9", // Fuchsia
+    "#22d3ee", // Cyan
+    "#818cf8", // Indigo
+    "#f59e0b", // Amber/Orange
+    "#facc15", // Yellow
+    "#4ade80", // Green
+    "#10b981", // Emerald
+    "#fb7185", // Rose
+    "#ef4444", // Red
+    "#ffffff", // White
+  ];
 
   const handleRename = () => {
     if (renameName.trim()) {
-      onUpdateFolder(folder.id, renameName.trim());
+      onUpdateFolder(folder.id, { name: renameName.trim() });
       setIsRenaming(false);
     } else {
       setRenameName(folder.name); // Revert if empty
@@ -221,10 +251,14 @@ const FolderItem = ({
           {expanded ? (
             <FolderOpen
               size={16}
-              className="text-fuchsia-500/80 drop-shadow-[0_0_5px_rgba(255,0,255,0.4)]"
+              style={{ color: folder.color || "#d946ef" }}
+              className="drop-shadow-[0_0_5px_rgba(255,0,255,0.4)]"
             />
           ) : (
-            <FolderIcon size={16} className="text-fuchsia-500/80" />
+            <FolderIcon
+              size={16}
+              style={{ color: folder.color || "#d946ef" }}
+            />
           )}
           {isRenaming ? (
             <input
@@ -254,7 +288,26 @@ const FolderItem = ({
             </>
           )}
         </div>
-        <div className="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity relative">
+          {isColorPickerOpen && (
+            <div
+              className="absolute right-0 top-8 z-50 p-2 bg-slate-900 border border-slate-700 rounded-lg shadow-xl grid grid-cols-4 gap-1 w-32"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {neonColors.map((color) => (
+                <button
+                  key={color}
+                  className="w-5 h-5 rounded-full hover:scale-110 transition-transform border border-white/10"
+                  style={{ backgroundColor: color }}
+                  onClick={() => {
+                    onUpdateFolder(folder.id, { color });
+                    setIsColorPickerOpen(false);
+                  }}
+                />
+              ))}
+            </div>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -265,6 +318,17 @@ const FolderItem = ({
             onPointerDown={(e) => e.stopPropagation()}
           >
             <Plus size={14} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsColorPickerOpen(!isColorPickerOpen);
+            }}
+            className="p-1 hover:text-cyan-400 ml-1"
+            title="Change color"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Palette size={12} />
           </button>
           <button
             onClick={(e) => {
@@ -613,30 +677,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Footer Actions */}
         <div className="p-3 border-t border-white/5 space-y-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-transparent">
           {/* Add Note Buttons */}
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => onAddNote("text")}
-              className="py-2 px-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-indigo-500/20"
+              className="glass-card py-3 px-1 rounded-xl text-fuchsia-200 hover:text-white font-medium transition-all duration-300 text-xs flex flex-col items-center justify-center gap-2 border-fuchsia-500/30 hover:border-fuchsia-400 hover:shadow-[0_0_15px_rgba(255,0,255,0.4)] relative group overflow-hidden"
               title="New Text Note"
             >
-              <FileText size={16} />
-              <span>Text</span>
+              <div className="absolute inset-0 bg-fuchsia-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <FileText
+                size={18}
+                className="drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]"
+              />
+              <span className="relative z-10">Text</span>
             </button>
             <button
               onClick={() => onAddNote("checklist")}
-              className="py-2 px-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-emerald-500/20"
+              className="glass-card py-3 px-1 rounded-xl text-cyan-200 hover:text-white font-medium transition-all duration-300 text-xs flex flex-col items-center justify-center gap-2 border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(0,255,255,0.4)] relative group overflow-hidden"
               title="New Checklist"
             >
-              <CheckSquare size={16} />
-              <span>Task</span>
+              <div className="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CheckSquare
+                size={18}
+                className="drop-shadow-[0_0_5px_rgba(0,255,255,0.5)]"
+              />
+              <span className="relative z-10">Task</span>
             </button>
             <button
               onClick={() => onAddNote("image")}
-              className="py-2 px-1 rounded-lg bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 hover:text-white font-medium transition-colors text-xs flex flex-col items-center justify-center gap-1 border border-blue-500/20"
+              className="glass-card py-3 px-1 rounded-xl text-indigo-200 hover:text-white font-medium transition-all duration-300 text-xs flex flex-col items-center justify-center gap-2 border-indigo-500/30 hover:border-indigo-400 hover:shadow-[0_0_15px_rgba(75,0,130,0.6)] relative group overflow-hidden"
               title="New Image Collection"
             >
-              <ImageIcon size={16} />
-              <span>Image</span>
+              <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <ImageIcon
+                size={18}
+                className="drop-shadow-[0_0_8px_rgba(75,0,130,0.8)]"
+              />
+              <span className="relative z-10">Image</span>
             </button>
           </div>
 
@@ -652,16 +728,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
       <DragOverlay>
         {activeDragItem ? (
-          <div className="bg-slate-800 p-3 rounded-lg shadow-2xl text-white flex items-center gap-2 border border-slate-600 opacity-90 w-48 z-50">
+          <div className="bg-slate-950/90 backdrop-blur-md p-3 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] text-white flex items-center gap-2 border border-slate-700 w-48 z-50">
             {activeDragItem.type === "folder" ? (
-              <FolderIcon size={16} className="text-yellow-500" />
+              <FolderIcon
+                size={16}
+                style={{
+                  color: (activeDragItem.data as Folder).color || "#e879f9",
+                }}
+              />
             ) : (
-              <FileText size={16} />
+              <>
+                {(activeDragItem.data as Note).type === "checklist" ? (
+                  <CheckSquare size={16} className="text-cyan-400" />
+                ) : (activeDragItem.data as Note).type === "image" ? (
+                  <ImageIcon size={16} className="text-indigo-400" />
+                ) : (
+                  <FileText size={16} className="text-fuchsia-400" />
+                )}
+              </>
             )}
-            <span className="truncate">
+            <span className="truncate font-medium text-sm">
               {activeDragItem.type === "folder"
                 ? (activeDragItem.data as Folder).name
-                : (activeDragItem.data as Note).title}
+                : (activeDragItem.data as Note).title || "Untitled"}
             </span>
           </div>
         ) : null}
