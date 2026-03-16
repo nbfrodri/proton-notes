@@ -1,4 +1,4 @@
-# NBF Notes 📝
+# NBF Notes
 
 **A Local-First, Fast, and Beautiful Note-Taking Experience.**
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 🚀 Why NBF Notes?
+## Why NBF Notes?
 
 - **Local Environment**: Your data never leaves your device. 100% private, 100% offline.
 - **Cross-Platform**: Seamless experience on both **Windows** and **Android**.
@@ -17,9 +17,9 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🖋️ Rich Text Editor (Mobile Optimized)
+### Rich Text Editor (Mobile Optimized)
 
 A powerful writing experience powered by **TipTap**, now fully responsive:
 
@@ -29,14 +29,14 @@ A powerful writing experience powered by **TipTap**, now fully responsive:
 - **Smart Links**: Auto-linking and easy URL management.
 - **Typography**: Headings, lists, bold, italic, **blockquotes**, **code blocks**, and more.
 
-### 📂 Smart Organization
+### Smart Organization
 
 - **Folders**: Create folders to organize your notes.
 - **Folder Personalization**: Customize folder icons with a **Neon Color Palette** (Magenta, Cyan, Lime, Orange, etc.) for visual distinction.
 - **Drag & Drop Reordering**: Long-press and drag to reorder notes, folders, tasks, and images on both desktop and mobile.
 - **Drag to Move**: Drag notes into folders to file them away.
 
-### ✅ Advanced Checklists
+### Advanced Checklists
 
 Stay organized with a task manager that goes beyond simple checkboxes:
 
@@ -44,14 +44,14 @@ Stay organized with a task manager that goes beyond simple checkboxes:
 - **Deep Details**: Expand any task to add a detailed **description**.
 - **Subtasks**: Break down complex items into manageable sub-steps.
 
-### 🖼️ Image Collections & Gestures
+### Image Collections & Gestures
 
 - **Visual Notes**: Create dedicated folders for your images.
 - **Swipe Navigation**: On mobile, simple **swipe left/right** gestures let you browse your gallery effortlessly.
 - **Drag Reordering**: Organize your image collections by dragging images to new positions.
 - **Native Storage**: Uses your device's native file system for efficient storage.
 
-### 🎨 Neon Glass Fusion UI
+### Neon Glass Fusion UI
 
 - **Aesthetic**: A high-fidelity **"Neon Glass Fusion"** design featuring a deep midnight navy background, floating glassmorphic panels, and vibrant neon accents (Cyan/Magenta).
 - **Responsive Glass**: Translucent components that adapt beautifully to any screen size, featuring real-time background blur and glowing borders.
@@ -61,7 +61,7 @@ Stay organized with a task manager that goes beyond simple checkboxes:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 This project leverages the latest ecosystem tools for maximum performance:
 
@@ -76,7 +76,7 @@ This project leverages the latest ecosystem tools for maximum performance:
 
 ---
 
-## 📦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -99,13 +99,13 @@ This project leverages the latest ecosystem tools for maximum performance:
 
 ### Running Locally
 
-#### 🖥️ Desktop (Development)
+#### Desktop (Development)
 
 ```bash
 npm run electron:dev
 ```
 
-#### 📱 Mobile (Android)
+#### Mobile (Android)
 
 ```bash
 # First, build the web assets
@@ -132,7 +132,7 @@ Build via Android Studio: `Build > Build Bundle(s) / APK(s) > Build APK(s)`.
 
 ---
 
-## 💾 Data Storage & Privacy
+## Data Storage & Privacy
 
 Your privacy is paramount. **NBF Notes** stores all data locally on your device using a transparent file structure:
 
@@ -146,13 +146,13 @@ Your privacy is paramount. **NBF Notes** stores all data locally on your device 
   - **Desktop**: Stored in the `images/` subdirectory.
   - **Mobile**: Stored directly in the app's root data directory for maximum compatibility.
 
-### 📱 Mobile Storage Strategy
+### Mobile Storage Strategy
 
 - **Internal Storage**: On Android, data is stored in the app's protected internal storage (`Directory.Data`).
 - **Data Persistence**: Files are preserved across app restarts and updates.
 - **Uninstall Data Wipe**: Uninstalling the app automatically and securely wipes all stored data (notes and images) from the device, ensuring no residual files are left behind.
 
-### 🧹 Maintenance & Cleanup
+### Maintenance & Cleanup
 
 To keep your storage optimized:
 
@@ -162,4 +162,4 @@ To keep your storage optimized:
 
 ---
 
-_Happy Note Taking!_ 🚀
+_Happy Note Taking!_
